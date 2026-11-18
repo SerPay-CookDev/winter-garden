@@ -634,3 +634,221 @@ input[type="checkbox"]:checked::after {
         display: none;
     }
 }
+/* --- НОВЫЙ ДИЗАЙН: ДОПОЛНЕНИЯ --- */
+
+/* Анимация переключения экранов */
+.screen.active {
+    animation: screen-slide 0.35s ease both;
+}
+
+@keyframes screen-slide {
+    from { opacity: 0; transform: translateX(30px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Декоративные фоновые пятна-листья */
+.decor {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(2px);
+    opacity: 0.5;
+    z-index: 0;
+    pointer-events: none;
+    animation: decor-float 8s ease-in-out infinite alternate;
+}
+
+.decor-1 {
+    top: 130px;
+    right: -40px;
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(circle at 30% 30%, #D4E5D0, transparent 70%);
+}
+
+.decor-2 {
+    bottom: 60px;
+    left: -50px;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle at 60% 40%, #CFE8ED, transparent 70%);
+    animation-delay: -4s;
+}
+
+@keyframes decor-float {
+    from { transform: translateY(0) scale(1); }
+    to   { transform: translateY(-16px) scale(1.06); }
+}
+
+.main-screen-content,
+#main-screen > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Плавное появление карточек (stagger) */
+.plant-card-appear {
+    animation: card-in 0.45s ease both;
+    animation-delay: var(--delay, 0ms);
+}
+
+@keyframes card-in {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.plant-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.plant-card-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+/* Бейдж статуса растения */
+.plant-status {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+    background: rgba(255,255,255,0.75);
+    color: var(--text-muted);
+}
+
+.plant-status-ok {
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+.plant-status-warning {
+    background: #FEF3C7;
+    color: #B45309;
+}
+
+/* Мини-прогресс-бар полива */
+.watering-bar {
+    width: 100%;
+    height: 6px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.6);
+    margin: 6px 0 4px;
+    overflow: hidden;
+}
+
+.watering-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #60A5FA, #3B82F6);
+    transition: width 0.6s ease;
+}
+
+.plant-card-water {
+    margin-bottom: 2px;
+}
+
+/* Цветные иконки метрик на экране деталей */
+#detail-screen .metrics-grid .metric-card:nth-child(1) svg { color: #3B82F6; }
+#detail-screen .metrics-grid .metric-card:nth-child(2) svg { color: #F59E0B; }
+#detail-screen .metrics-grid .metric-card:nth-child(3) svg { color: #EF4444; }
+#detail-screen .metrics-grid .metric-card:nth-child(4) svg { color: #10B981; }
+
+.metric-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+/* Пульсация кнопки «+» */
+.add-btn {
+    animation: add-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes add-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(136, 184, 196, 0.45); }
+    50%      { box-shadow: 0 0 0 8px rgba(136, 184, 196, 0); }
+}
+
+/* Тёмная тема */
+body.dark {
+    --bg-color: #1A202C;
+    --app-bg: #232B3B;
+    --text-main: #E2E8F0;
+    --text-muted: #A0AEC0;
+    --primary: #6FA8B6;
+    --primary-dark: #88B8C4;
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+body.dark .metric-card {
+    background-color: #2D3748;
+}
+
+body.dark .close-btn {
+    color: #E2E8F0;
+}
+
+body.dark .plant-card-btn {
+    background-color: #2D3748;
+    color: var(--primary);
+}
+
+body.dark .secondary-btn {
+    color: var(--text-muted);
+    border-color: #4A5568;
+}
+
+body.dark .recommendation-box {
+    background-color: #45232A;
+    color: #FEB2B2;
+}
+
+body.dark .modal-content {
+    background: #2D3748;
+}
+
+body.dark form input,
+body.dark form select {
+    background-color: #1A202C;
+    border-color: #4A5568;
+    color: var(--text-main);
+}
+
+body.dark input[type="checkbox"] {
+    background-color: #4A5568;
+}
+
+body.dark .plant-status {
+    background: rgba(45, 55, 72, 0.9);
+}
+
+body.dark .plant-search-result {
+    background: #2D3748;
+    border-color: #4A5568;
+    color: var(--text-main);
+}
+
+body.dark .plant-search-result:hover {
+    background: #35405A;
+}
+
+body.dark .watering-bar {
+    background: rgba(255,255,255,0.15);
+}
+
+/* Уважение к настройкам доступности */
+@media (prefers-reduced-motion: reduce) {
+    .plant-card-appear,
+    .screen.active,
+    .decor,
+    .add-btn {
+        animation: none;
+    }
+}

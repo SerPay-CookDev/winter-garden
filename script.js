@@ -17,7 +17,8 @@ const DB_KEYS = {
 let plants = JSON.parse(localStorage.getItem(DB_KEYS.PLANTS)) || [];
 let readings = JSON.parse(localStorage.getItem(DB_KEYS.READINGS)) || [];
 let settings = JSON.parse(localStorage.getItem(DB_KEYS.SETTINGS)) || {
-    vacationMode: false
+    vacationMode: false,
+    theme: 'light'
 };
 
 let climateChartInstance = null;
@@ -93,6 +94,31 @@ const manualPlantFields = document.getElementById('manual-plant-fields');
 const newNameInput = document.getElementById('new-name');
 const newPhotoInput = document.getElementById('new-photo');
 
+// --- СТАТУС РАСТЕНИЯ ПО ПОСЛЕДНИМ ПОКАЗАНИЯМ ---
+function getPlantStatus(plant) {
+    const plantReadings = readings.filter(
+        item => String(item.plant_id) === String(plant.id)
+    );
+
+    if (plantReadings.length === 0) {
+        return { code: 'unknown', label: 'Нет данных' };
+    }
+
+    const last = plantReadings[plantReadings.length - 1];
+    const messages = [];
+
+    if (last.temp > plant.max_temp) messages.push('Жарко');
+    else if (last.temp < plant.min_temp) messages.push('Холодно');
+
+    if (last.hum > plant.max_hum) messages.push('Влажно');
+    else if (last.hum < plant.min_hum) messages.push('Сухо');
+
+    if (messages.length > 0) {
+        return { code: 'warning', label: messages.join(' / '), temp: last.temp, hum: last.hum };
+    }
+    return { code: 'ok', label: 'Всё хорошо', temp: last.temp, hum: last.hum };
+}
+
 // --- СПИСОК МОИХ РАСТЕНИЙ ---
 function renderPlantList() {
     plantList.innerHTML = '';
@@ -114,8 +140,10 @@ function renderPlantList() {
 
     plants.forEach((plant, index) => {
         const card = document.createElement('div');
-        card.className = 'plant-card';
-        card.style.backgroundColor = plant.color || colors[index % colors.length];
+        card.className = 'plant-card plant-card-appear';
+        card.style.setProperty('--delay', `${index * 80}ms`);
+        card.style.background =
+            `linear-gradient(135deg, ${plant.color || colors[index % colors.length]}, rgba(255,255,255,0.65))`;
 
         const image = document.createElement('img');
         image.className = 'plant-card-img';
@@ -128,9 +156,31 @@ function renderPlantList() {
         const info = document.createElement('div');
         info.className = 'plant-card-info';
 
+        const nameRow = document.createElement('div');
+        nameRow.className = 'plant-card-name-row';
+
         const name = document.createElement('div');
         name.className = 'plant-card-name';
         name.textContent = plant.name;
+
+        const status = getPlantStatus(plant);
+        const badge = document.createElement('span');
+        badge.className = `plant-status plant-status-${status.code}`;
+        badge.textContent =
+            status.code === 'ok' ? '✅ Всё хорошо'
+            : status.code === 'warning' ? `⚠️ ${status.label}`
+            : '🌿 Нет данных';
+
+        nameRow.append(name, badge);
+
+        const maxWater = Math.max(plant.watering_freq, 7);
+        const waterPercent = Math.round((plant.watering_freq / 7) * 100);
+        const waterBarWrap = document.createElement('div');
+        waterBarWrap.className = 'watering-bar';
+        const waterBar = document.createElement('div');
+        waterBar.className = 'watering-bar-fill';
+        waterBar.style.width = `${waterPercent}%`;
+        waterBarWrap.appendChild(waterBar);
 
         const watering = document.createElement('div');
         watering.className = 'plant-card-water';
@@ -141,7 +191,7 @@ function renderPlantList() {
             Полив: ${plant.watering_freq} раз(а) в нед.
         `;
 
-        info.append(name, watering);
+        info.append(nameRow, waterBarWrap, watering);
 
         const arrow = document.createElement('div');
         arrow.className = 'plant-card-btn';
@@ -235,7 +285,13 @@ function renderChart(plantId) {
                     label: 'Температура (°C)',
                     data: tempData,
                     borderColor: '#F59E0B',
-                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    backgroundColor: ctx => {
+                        const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, ctx.chart.height || 200);
+                        gradient.addColorStop(0, 'rgba(245, 158, 11, 0.35)');
+                        gradient.addColorStop(1, 'rgba(245, 158, 11, 0)');
+                        return gradient;
+                    },
+                    fill: true,
                     borderWidth: 2,
                     tension: 0.4,
                     yAxisID: 'y'
@@ -244,7 +300,13 @@ function renderChart(plantId) {
                     label: 'Влажность (%)',
                     data: humData,
                     borderColor: '#3B82F6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    backgroundColor: ctx => {
+                        const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, ctx.chart.height || 200);
+                        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
+                        gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+                        return gradient;
+                    },
+                    fill: true,
                     borderWidth: 2,
                     tension: 0.4,
                     yAxisID: 'y1'
@@ -566,8 +628,21 @@ document.getElementById('delete-plant-btn').addEventListener('click', () => {
 });
 
 // --- НАСТРОЙКИ И РЕЖИМ «ОТПУСК» ---
+const themeToggle = document.getElementById('theme-toggle');
+
+function applyTheme() {
+    document.body.classList.toggle('dark', settings.theme === 'dark');
+}
+
+themeToggle.addEventListener('change', event => {
+    settings.theme = event.target.checked ? 'dark' : 'light';
+    saveData();
+    applyTheme();
+});
+
 document.getElementById('settings-btn').addEventListener('click', () => {
     vacationToggle.checked = settings.vacationMode;
+    themeToggle.checked = settings.theme === 'dark';
     settingsModal.classList.remove('hidden');
 });
 
@@ -588,6 +663,7 @@ function updateVacationBanner() {
 // --- ИНИЦИАЛИЗАЦИЯ ---
 function init() {
     seedInitialData();
+    applyTheme();
     updateVacationBanner();
     renderPlantList();
 }
