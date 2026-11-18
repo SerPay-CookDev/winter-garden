@@ -679,7 +679,6 @@ input[type="checkbox"]:checked::after {
     to   { transform: translateY(-16px) scale(1.06); }
 }
 
-.main-screen-content,
 #main-screen > * {
     position: relative;
     z-index: 1;
@@ -717,7 +716,7 @@ input[type="checkbox"]:checked::after {
     border-radius: 20px;
     white-space: nowrap;
     background: rgba(255,255,255,0.75);
-    color: var(--text-muted);
+    color: #4A5568;
 }
 
 .plant-status-ok {
@@ -795,11 +794,6 @@ body.dark .close-btn {
     color: #E2E8F0;
 }
 
-body.dark .plant-card-btn {
-    background-color: #2D3748;
-    color: var(--primary);
-}
-
 body.dark .secondary-btn {
     color: var(--text-muted);
     border-color: #4A5568;
@@ -825,10 +819,6 @@ body.dark input[type="checkbox"] {
     background-color: #4A5568;
 }
 
-body.dark .plant-status {
-    background: rgba(45, 55, 72, 0.9);
-}
-
 body.dark .plant-search-result {
     background: #2D3748;
     border-color: #4A5568;
@@ -841,6 +831,21 @@ body.dark .plant-search-result:hover {
 
 body.dark .watering-bar {
     background: rgba(255,255,255,0.15);
+}
+
+/* ФИКС: текст на карточках растений всегда тёмный (фон карточек светлый) */
+.plant-card-name,
+.plant-card-water {
+    color: #2D3748 !important;
+}
+
+.plant-card-btn {
+    background-color: #FFFFFF !important;
+    color: #2D3748 !important;
+}
+
+.plant-card-btn svg {
+    color: #2D3748 !important;
 }
 
 /* Уважение к настройкам доступности */

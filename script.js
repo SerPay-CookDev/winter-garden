@@ -173,7 +173,6 @@ function renderPlantList() {
 
         nameRow.append(name, badge);
 
-        const maxWater = Math.max(plant.watering_freq, 7);
         const waterPercent = Math.round((plant.watering_freq / 7) * 100);
         const waterBarWrap = document.createElement('div');
         waterBarWrap.className = 'watering-bar';
