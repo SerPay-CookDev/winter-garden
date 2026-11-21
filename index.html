@@ -38,12 +38,27 @@
                 </button>
             </header>
 
+            <!-- ПАНЕЛЬ АНАЛИТИКИ -->
+            <section class="analytics-panel">
+                <button type="button" id="analytics-toggle" class="analytics-toggle" aria-expanded="false">
+                    <span class="analytics-toggle-title">📊 Аналитика сада</span>
+                    <svg class="analytics-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </button>
+
+                <div id="analytics-summary" class="analytics-summary">
+                    <!-- Краткие показатели добавляются через JavaScript -->
+                </div>
+
+                <div id="analytics-details" class="analytics-details hidden">
+                    <!-- Подробная аналитика добавляется через JavaScript -->
+                </div>
+            </section>
+
             <div id="vacation-banner" class="vacation-banner hidden">
                 🌴 Режим «Отпуск» включен. Уведомления отключены.
             </div>
-
-            <div class="decor decor-1" aria-hidden="true"></div>
-            <div class="decor decor-2" aria-hidden="true"></div>
 
             <h2 class="section-title">Мои растения</h2>
             <div class="plant-list" id="plant-list">

@@ -119,6 +119,155 @@ function getPlantStatus(plant) {
     return { code: 'ok', label: 'Всё хорошо', temp: last.temp, hum: last.hum };
 }
 
+// --- АНАЛИТИКА САДА ---
+let analyticsOpen = false;
+
+function renderAnalytics() {
+    const summary = document.getElementById('analytics-summary');
+    const details = document.getElementById('analytics-details');
+
+    summary.replaceChildren();
+    details.replaceChildren();
+
+    const totalPlants = plants.length;
+
+    const statuses = plants.map(plant => ({
+        plant,
+        status: getPlantStatus(plant),
+        count: readings.filter(
+            item => String(item.plant_id) === String(plant.id)
+        ).length
+    }));
+
+    const warnings = statuses.filter(
+        item => item.status.code === 'warning'
+    );
+    const withData = statuses.filter(
+        item => item.status.code !== 'unknown'
+    );
+
+    const avgTemp = withData.length
+        ? Math.round(withData.reduce((sum, item) => sum + item.status.temp, 0) / withData.length * 10) / 10
+        : null;
+    const avgHum = withData.length
+        ? Math.round(withData.reduce((sum, item) => sum + item.status.hum, 0) / withData.length)
+        : null;
+    const totalReadings = readings.length;
+
+    if (totalPlants === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'analytics-empty';
+        empty.textContent = 'Добавьте растения, чтобы увидеть аналитику. 🌱';
+        summary.appendChild(empty);
+        return;
+    }
+
+    const cards = [
+        { label: 'Растений', value: totalPlants, hint: 'в вашем саду' },
+        {
+            label: 'Требуют внимания',
+            value: warnings.length,
+            hint: warnings.length ? 'проверьте условия' : 'все в порядке',
+            accent: warnings.length ? 'warning' : 'ok'
+        },
+        {
+            label: 'Средняя t°',
+            value: avgTemp === null ? '—' : `${avgTemp}°C`,
+            hint: 'по последним данным'
+        },
+        {
+            label: 'Средняя влажн.',
+            value: avgHum === null ? '—' : `${avgHum}%`,
+            hint: 'по последним данным'
+        },
+        { label: 'Измерений', value: totalReadings, hint: 'всего записей' }
+    ];
+
+    cards.forEach(cardInfo => {
+        const card = document.createElement('div');
+        card.className = 'analytics-card' + (cardInfo.accent ? ` analytics-card-${cardInfo.accent}` : '');
+
+        const value = document.createElement('div');
+        value.className = 'analytics-card-value';
+        value.textContent = cardInfo.value;
+
+        const label = document.createElement('div');
+        label.className = 'analytics-card-label';
+        label.textContent = cardInfo.label;
+
+        const hint = document.createElement('div');
+        hint.className = 'analytics-card-hint';
+        hint.textContent = cardInfo.hint;
+
+        card.append(value, label, hint);
+        summary.appendChild(card);
+    });
+
+    // Подробная аналитика
+    const heading = document.createElement('h3');
+    heading.className = 'analytics-details-title';
+    heading.textContent = 'Подробности по растениям';
+    details.appendChild(heading);
+
+    statuses.forEach(({ plant, status, count }) => {
+        const row = document.createElement('div');
+        row.className = 'analytics-row';
+
+        const left = document.createElement('div');
+        left.className = 'analytics-row-left';
+
+        const name = document.createElement('div');
+        name.className = 'analytics-row-name';
+        name.textContent = plant.name;
+
+        const meta = document.createElement('div');
+        meta.className = 'analytics-row-meta';
+        meta.textContent = status.code === 'unknown'
+            ? 'Замеров пока не было'
+            : `Последний замер: ${status.temp}°C · ${status.hum}% · всего ${count}`;
+
+        left.append(name, meta);
+
+        const badge = document.createElement('span');
+        badge.className = `plant-status plant-status-${status.code}`;
+        badge.textContent =
+            status.code === 'ok' ? '✅ Норма'
+            : status.code === 'warning' ? `⚠️ ${status.label}`
+            : '🌿 Нет данных';
+
+        row.append(left, badge);
+        details.appendChild(row);
+    });
+
+    // Совет по саду
+    const tip = document.createElement('p');
+    tip.className = 'analytics-tip';
+    if (warnings.length > 0) {
+        tip.textContent = '💡 Совет: проверьте условия у растений с предупреждениями — они первыми пострадают.';
+    } else if (withData.length === 0) {
+        tip.textContent = '💡 Совет: нажмите «Эмулировать датчик» на экране растения, чтобы собрать первые данные.';
+    } else {
+        tip.textContent = '💡 Отлично! Все растения в комфортных условиях. Продолжайте наблюдение.';
+    }
+    details.appendChild(tip);
+}
+
+function setupAnalyticsPanel() {
+    const toggle = document.getElementById('analytics-toggle');
+    const details = document.getElementById('analytics-details');
+
+    toggle.addEventListener('click', () => {
+        analyticsOpen = !analyticsOpen;
+        toggle.setAttribute('aria-expanded', String(analyticsOpen));
+        toggle.classList.toggle('is-open', analyticsOpen);
+        details.classList.toggle('hidden', !analyticsOpen);
+
+        if (analyticsOpen) {
+            renderAnalytics();
+        }
+    });
+}
+
 // --- СПИСОК МОИХ РАСТЕНИЙ ---
 function renderPlantList() {
     plantList.innerHTML = '';
@@ -391,6 +540,7 @@ document.getElementById('emulate-sensor-btn').addEventListener('click', () => {
     saveData();
     renderChart(plant.id);
     checkRecommendations(plant, newTemp, newHum);
+    renderAnalytics();
 });
 
 // --- РЕКОМЕНДАЦИИ ---
@@ -597,6 +747,7 @@ document.getElementById('add-plant-form').addEventListener('submit', event => {
 
     plants.push(newPlant);
     saveData();
+    renderAnalytics();
 
     addModal.classList.add('hidden');
     document.getElementById('add-plant-form').reset();
@@ -615,6 +766,7 @@ document.getElementById('delete-plant-btn').addEventListener('click', () => {
     );
 
     saveData();
+    renderAnalytics();
     detailScreen.classList.remove('active');
     mainScreen.classList.add('active');
 
@@ -632,7 +784,7 @@ const themeToggle = document.getElementById('theme-toggle');
 function applyTheme() {
     document.body.classList.toggle('dark', settings.theme === 'dark');
 }
-
+// --- НАСТРОЙКИ И РЕЖИМ «ОТПУСК» (тема) ---
 themeToggle.addEventListener('change', event => {
     settings.theme = event.target.checked ? 'dark' : 'light';
     saveData();
@@ -664,6 +816,8 @@ function init() {
     seedInitialData();
     applyTheme();
     updateVacationBanner();
+    setupAnalyticsPanel();
+    renderAnalytics();
     renderPlantList();
 }
 
